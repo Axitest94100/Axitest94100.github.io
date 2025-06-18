@@ -486,9 +486,10 @@ document.addEventListener('DOMContentLoaded', async function () {
             			<td>${machine.model}</td>
             			<td>${machine.quantite}</td>
             			<td>${machine.emplacement}</td>
-    					<button class="btn btn-sm btn-primary" onclick="showProductModal(${index})">Voir plus</button>
-    					<button class="btn btn-sm btn-secondary" onclick="toggleUnitDetails('units-${index}')">Unités</button>
-                			<button class="btn btn-sm btn-info" onclick="showQRCodeModal(${index})">Voir QR Code</button>
+	       			<td>
+    					<button class="btn btn-primary" onclick="showProductModal(${index})">Voir plus</button>
+    					<button class="btn btn-secondary" onclick="toggleUnitDetails('units-${index}')">Unités</button>
+                			<button class="btn btn-info" onclick="showQRCodeModal(${index})">Voir QR Code</button>
             			</td>
         		`;
         		tbody.appendChild(tr);
