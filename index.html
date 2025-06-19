@@ -1035,8 +1035,8 @@ function updateCVIList() {
             if (confirm('Êtes-vous sûr de vouloir supprimer cette machine ?')) {
                 machines.splice(index, 1);
                 saveMachines();
-	    	await envoyerVersGitHub(machines);
-           	await chargerMachinesDepuisGitHub();
+	    	envoyerVersGitHub(machines);
+           	setTimeout(() => {chargerMachinesDepuisGitHub();},10000);
                 updateInventory();
                 updateCVIList();
                 showAlert('Machine supprimée', 'success');
