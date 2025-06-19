@@ -411,9 +411,8 @@ document.addEventListener('DOMContentLoaded', async function () {
             }
 
             saveMachines();
-	    await envoyerVersGitHub(machines);
-            await chargerMachinesDepuisGitHub();
-	    setTimeout(() => {chargerMachinesDepuisGitHub();},500);
+	    envoyerVersGitHub(machines);
+            setTimeout(() => {chargerMachinesDepuisGitHub();},10000);
             showView('list-machines');
         }
 	
@@ -527,8 +526,8 @@ document.addEventListener('DOMContentLoaded', async function () {
     		machine.quantite = machine.unites.length;
 
     		saveMachines();
-	   	await envoyerVersGitHub(machines);
-            	await chargerMachinesDepuisGitHub();
+	   	envoyerVersGitHub(machines);
+                setTimeout(() => {chargerMachinesDepuisGitHub();},10000);
     		updateInventory();
     		updateCVIList();
 
@@ -602,8 +601,8 @@ document.addEventListener('DOMContentLoaded', async function () {
             			showAlert("Unité supprimée avec succès", "success");
         		}
         		saveMachines();
-	    		await envoyerVersGitHub(machines);
-			await chargerMachinesDepuisGitHub();
+	    		envoyerVersGitHub(machines);
+            		setTimeout(() => {chargerMachinesDepuisGitHub();},10000);
         		updateInventory();
         		updateCVIList();
 
@@ -626,8 +625,8 @@ document.addEventListener('DOMContentLoaded', async function () {
     		}
 
     		saveMachines();
-		await envoyerVersGitHub(machines);
-            	await chargerMachinesDepuisGitHub();
+		envoyerVersGitHub(machines);
+            	setTimeout(() => {chargerMachinesDepuisGitHub();},10000);
     		updateInventory();
     		updateCVIList();
     		showAlert("Unité supprimée avec succès", "success");
@@ -660,8 +659,8 @@ document.addEventListener('DOMContentLoaded', async function () {
 		machines[index].emplacement = uniquePositions.join(' + ');
 
     		saveMachines();
-	    	await envoyerVersGitHub(machines);
-            	await chargerMachinesDepuisGitHub();
+	    	envoyerVersGitHub(machines);
+            	setTimeout(() => {chargerMachinesDepuisGitHub();},10000);
 		updateInventory();
     		updateCVIList();
     		showAlert('Unités mises à jour avec succès', 'success');
@@ -693,8 +692,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 				}
                			machines = importedData;
                 		saveMachines();
-		    		await envoyerVersGitHub(machines);
-            			await chargerMachinesDepuisGitHub();
+		    		envoyerVersGitHub(machines);
                 		showAlert("Données importées avec succès", "success");
                 		updateInventory();
             		} else {
@@ -801,8 +799,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         		}));
 
         		saveMachines();
-	    		await envoyerVersGitHub(machines);
-            		await chargerMachinesDepuisGitHub();
+	    		envoyerVersGitHub(machines);
         		showAlert("Importation Excel réussie", "success");
         		updateInventory();
     		};
@@ -844,8 +841,8 @@ document.addEventListener('DOMContentLoaded', async function () {
     		unit.dateFinCVI = (unit.etatcvi === 'oui') ? document.getElementById('edit-unit-date-cvi').value : null;
 
     		saveMachines();
-		await envoyerVersGitHub(machines);
-            	await chargerMachinesDepuisGitHub();
+		envoyerVersGitHub(machines);
+            	setTimeout(() => {chargerMachinesDepuisGitHub();},10000);
     		showAlert('Unité mise à jour', 'success');
     		showView('list-machines');
 	});
@@ -1026,8 +1023,8 @@ function updateCVIList() {
             machines[index].marque = newmarque;
 	    machines[index].description = newdescription;
             saveMachines();
-	    await envoyerVersGitHub(machines);
-            await chargerMachinesDepuisGitHub();
+	    envoyerVersGitHub(machines);
+            setTimeout(() => {chargerMachinesDepuisGitHub();},10000);
             updateInventory();
             updateCVIList();
             showAlert('Produit mis à jour', 'success');
