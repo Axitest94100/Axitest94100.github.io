@@ -413,6 +413,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             saveMachines();
 	    envoyerVersGitHub(machines); 
             document.getElementById('add-machine-form').reset();
+	    setTimeout(() => {ChargerDepuisGitHub();},500);
             showView('list-machines');
         }
 	
@@ -529,6 +530,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 		envoyerVersGitHub(machines); 
     		updateInventory();
     		updateCVIList();
+		setTimeout(() => {ChargerDepuisGitHub();},500);
     		showAlert("Une unité a été ajoutée", "success");
     		document.getElementById(`units-${index}`).style.display = 'block';
 	}
@@ -598,10 +600,11 @@ document.addEventListener('DOMContentLoaded', async function () {
         		} else {
             			showAlert("Unité supprimée avec succès", "success");
         		}
-			envoyerVersGitHub(machines)
         		saveMachines();
+			envoyerVersGitHub(machines);
         		updateInventory();
         		updateCVIList();
+			setTimeout(() => {ChargerDepuisGitHub();},500);
         		showView('list-machines'); 
     		}
 	}
@@ -624,6 +627,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 	    	envoyerVersGitHub(machines); 
     		updateInventory();
     		updateCVIList();
+		setTimeout(() => {ChargerDepuisGitHub();},500);
     		showAlert("Unité supprimée avec succès", "success");
 	}
 
@@ -654,7 +658,8 @@ document.addEventListener('DOMContentLoaded', async function () {
 		machines[index].emplacement = uniquePositions.join(' + ');
 
     		saveMachines();
-		envoyerVersGitHub(machines); 
+		envoyerVersGitHub(machines);
+		setTimeout(() => {ChargerDepuisGitHub();},500);
 		updateInventory();
     		updateCVIList();
     		showAlert('Unités mises à jour avec succès', 'success');
@@ -687,6 +692,7 @@ document.addEventListener('DOMContentLoaded', async function () {
                			machines = importedData;
                 		saveMachines();
 				envoyerVersGitHub(machines)
+				setTimeout(() => {ChargerDepuisGitHub();},500);
                 		showAlert("Données importées avec succès", "success");
                 		updateInventory();
             		} else {
@@ -793,7 +799,8 @@ document.addEventListener('DOMContentLoaded', async function () {
         		}));
 
         		saveMachines();
-			envoyerVersGitHub(machines); 
+			envoyerVersGitHub(machines);
+			setTimeout(() => {ChargerDepuisGitHub();},500);
         		showAlert("Importation Excel réussie", "success");
         		updateInventory();
     		};
@@ -836,6 +843,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     		saveMachines();
 		envoyerVersGitHub(machines); 
+		setTimeout(() => {ChargerDepuisGitHub();},500);
     		showAlert('Unité mise à jour', 'success');
     		showView('list-machines');
 	});
@@ -1030,10 +1038,11 @@ function updateCVIList() {
             machines[index].model = newmodel;
             machines[index].marque = newmarque;
 	    machines[index].description = newdescription;
-	    envoyerVersGitHub(machines)
             saveMachines();
+	    envoyerVersGitHub(machines);
             updateInventory();
             updateCVIList();
+	    setTimeout(() => {ChargerDepuisGitHub();},500);
             showAlert('Produit mis à jour', 'success');
             bootstrap.Modal.getInstance(document.getElementById('productModal')).hide();
         }
@@ -1041,10 +1050,11 @@ function updateCVIList() {
         function deleteMachine(index) {
             if (confirm('Êtes-vous sûr de vouloir supprimer cette machine ?')) {
                 machines.splice(index, 1);
-		envoyerVersGitHub(machines)
                 saveMachines();
+		envoyerVersGitHub(machines);
                 updateInventory();
                 updateCVIList();
+		setTimeout(() => {ChargerDepuisGitHub();},500);
                 showAlert('Machine supprimée', 'success');
                 bootstrap.Modal.getInstance(document.getElementById('productModal')).hide();
             }
