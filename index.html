@@ -325,9 +325,9 @@ document.addEventListener('DOMContentLoaded', async function () {
             
             if (viewName === 'list-machines') updateInventory();
             if (viewName === 'cvi') updateCVIList();
-	    if (viewName === 'add-machine') {
-    		document.getElementById('quantite').dispatchEvent(new Event('input'))};
-        }
+	    if (viewName === 'add-machine') {document.getElementById('quantite').dispatchEvent(new Event('input')); 
+					    chargerMachinesDepuisGitHub();};
+	}
 
         function addMachine(e) {
             e.preventDefault();
@@ -411,8 +411,6 @@ document.addEventListener('DOMContentLoaded', async function () {
             }
 
             saveMachines();
-	    envoyerVersGitHub(machines);
-            setTimeout(() => {chargerMachinesDepuisGitHub();},10000);
             showView('list-machines');
         }
 	
@@ -526,8 +524,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     		machine.quantite = machine.unites.length;
 
     		saveMachines();
-	   	envoyerVersGitHub(machines);
-                setTimeout(() => {chargerMachinesDepuisGitHub();},10000);
     		updateInventory();
     		updateCVIList();
 
@@ -601,8 +597,6 @@ document.addEventListener('DOMContentLoaded', async function () {
             			showAlert("Unité supprimée avec succès", "success");
         		}
         		saveMachines();
-	    		envoyerVersGitHub(machines);
-            		setTimeout(() => {chargerMachinesDepuisGitHub();},10000);
         		updateInventory();
         		updateCVIList();
 
@@ -625,8 +619,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     		}
 
     		saveMachines();
-		envoyerVersGitHub(machines);
-            	setTimeout(() => {chargerMachinesDepuisGitHub();},10000);
     		updateInventory();
     		updateCVIList();
     		showAlert("Unité supprimée avec succès", "success");
@@ -659,8 +651,6 @@ document.addEventListener('DOMContentLoaded', async function () {
 		machines[index].emplacement = uniquePositions.join(' + ');
 
     		saveMachines();
-	    	envoyerVersGitHub(machines);
-            	setTimeout(() => {chargerMachinesDepuisGitHub();},10000);
 		updateInventory();
     		updateCVIList();
     		showAlert('Unités mises à jour avec succès', 'success');
@@ -692,7 +682,6 @@ document.addEventListener('DOMContentLoaded', async function () {
 				}
                			machines = importedData;
                 		saveMachines();
-		    		envoyerVersGitHub(machines);
                 		showAlert("Données importées avec succès", "success");
                 		updateInventory();
             		} else {
@@ -799,7 +788,6 @@ document.addEventListener('DOMContentLoaded', async function () {
         		}));
 
         		saveMachines();
-	    		envoyerVersGitHub(machines);
         		showAlert("Importation Excel réussie", "success");
         		updateInventory();
     		};
@@ -841,8 +829,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     		unit.dateFinCVI = (unit.etatcvi === 'oui') ? document.getElementById('edit-unit-date-cvi').value : null;
 
     		saveMachines();
-		envoyerVersGitHub(machines);
-            	setTimeout(() => {chargerMachinesDepuisGitHub();},10000);
     		showAlert('Unité mise à jour', 'success');
     		showView('list-machines');
 	});
@@ -1023,8 +1009,6 @@ function updateCVIList() {
             machines[index].marque = newmarque;
 	    machines[index].description = newdescription;
             saveMachines();
-	    envoyerVersGitHub(machines);
-            setTimeout(() => {chargerMachinesDepuisGitHub();},10000);
             updateInventory();
             updateCVIList();
             showAlert('Produit mis à jour', 'success');
@@ -1035,8 +1019,6 @@ function updateCVIList() {
             if (confirm('Êtes-vous sûr de vouloir supprimer cette machine ?')) {
                 machines.splice(index, 1);
                 saveMachines();
-	    	envoyerVersGitHub(machines);
-           	setTimeout(() => {chargerMachinesDepuisGitHub();},10000);
                 updateInventory();
                 updateCVIList();
                 showAlert('Machine supprimée', 'success');
