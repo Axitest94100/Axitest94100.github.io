@@ -33,6 +33,15 @@
         .alert {
             transition: opacity 0.5s ease-out;
         }
+	.table-danger {
+    		background-color: #ffdddd !important; /* Rouge très clair */
+	}
+
+	.text-danger.fw-bold {
+    		font-weight: bold;
+    		color: #dc3545 !important; /* Rouge Bootstrap */
+	}
+
     </style>
 </head>
 <body class="" style="">
@@ -92,11 +101,15 @@
                     <label for="quantite" class="form-label">Quantité</label>
                     <input type="number" class="form-control" id="quantite" min="1" value="1" required="">
                 </div>
+		<div class="mb-3">
+			<label for="description" class="form-label">Description</label>
+			<textarea class="form-control" id="description" rows="3"></textarea>
+		</div>
 		<div id="unit-fields-container"></div>
 
                 <button type="submit" class="btn btn-primary">Enregistrer</button>
                 <button type="button" class="btn btn-secondary" onclick="showView('home')">Annuler</button>
-		<button type="button" class="btn btn-sm btn-outline-success" onclick="printQRCode()">Imprimer le QR</button>
+		<button type="button" class="btn btn-success" onclick="printQRCode()">Imprimer le QR</button>
             </form>
         </div>
         <div id="list-machines-view" class="view hidden">
@@ -108,7 +121,7 @@
                             <th onclick="sortMachinesby('marque',this)">Marque<span class="chevron"></span></th>
 			    <th onclick="sortMachinesby('model',this)">Modèle<span class="chevron"></span></th>
                             <th>Quantité</th>
-			    <th>Emplacement Global</th>
+			    <th onclick="sortMachinesby('emplacement',this)">Emplacement Global<span class="chevron"></span></th>
                             <th>Actions</th>
 
                         </tr>
@@ -169,11 +182,10 @@
                     <thead>
                         <tr>
                             <th>Marque</th>
-                            <th>Modèle</th>
+			    <th>Modèle</th>
 			    <th>Numéro de série</th>
 			    <th>Emplacement</th>
-                            <th>Date fin CVI</th>
-                            <th>Actions</th>
+                            <th>Date du CVI</th>
                         </tr>
 
                     </thead>
@@ -189,15 +201,15 @@
 	            <div class="card-body">
 			<h2>Gérer une sauvegarde</h2>
                 	<div class="d-grid gap-2">
-				<h6>Exporter </h6>
-                    		<button class="btn btn-danger" onclick="exportData()">Exporter (JSON) </button>
+				<h5>Exporter </h5>
+                    		<button class="btn btn-danger" onclick="exportData()">Exporter JSON</button>
 			
-				<button class="btn btn-danger" onclick="exportDataToExcel()">Exporter (EXCEL)</button>
+				<button class="btn btn-danger" onclick="exportDataToExcel()">Exporter EXCEL</button>
                 
-				<h5>Importer un fichier (JSON)</h5>
+				<h5>Importer un fichier JSON</h5>
 				<input type="file" id="import-file" class="form-control mt-2" onchange="importData()">
                 
-				<h5>Importer un fichier (EXCEL)</h5>
+				<h5>Importer un fichier EXCEL</h5>
 				<input type="file" id="import-excel-file" class="form-control" accept=".xlsx, .xls, .json" onchange="importDataFromExcel()">
 
 			</div>	
@@ -215,17 +227,6 @@
 		  </div>
 	</div>		
 
-    <div class="modal fade" id="qrCodeModal" tabindex="-1" aria-labelledby="qrCodeModalLabel" aria-hidden="true">
-  	<div class="modal-dialog modal-dialog-centered">
-    		<div class="modal-content text-center">
-     			<div class="modal-header">
-        			<h5 class="modal-title" id="qrCodeModalLabel">QR Code</h5>
-        			<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      			</div>
-      			<div class="modal-body" id="qrCodeModalBody"></div>
-    		</div>
-  	</div>
-    </div>
 
 
     <div class="modal fade" id="productModal" tabindex="-1" style="display: none;" aria-hidden="true">
@@ -238,15 +239,19 @@
                 <div class="modal-body" id="product-modal-body">
                 <div class="mb-3">
                     <label class="form-label">Marque</label>
-                    <input type="text" class="form-control" id="modal-marque" value="Tektronix">
+                    <input type="text" class="form-control" id="modal-marque">
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Modèle</label>
-                    <input type="text" class="form-control" id="modal-model" value="3750">
+                    <input type="text" class="form-control" id="modal-model">
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Quantité</label>
                     <input type="number" class="form-control" id="modal-quantity" value="1" min="1">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Description</label>
+                    <input type="text" class="form-control" id="modal-description">
                 </div>
 
                 <div class="d-flex justify-content-between">
@@ -290,7 +295,7 @@
             			<label class="form-label">Date fin CVI</label>
             			<input type="date" class="form-control" id="edit-unit-date-cvi">
         		</div>
-        		<button type="submit" class="btn btn-success">Enregistrer</button>
+        		<button type="submit" class="btn btn-primary">Enregistrer</button>
 			<button class="btn btn-sm btn-danger" onclick="deleteCurrentUnit()">Supprimer</button>
         		
     		</form>
@@ -321,9 +326,9 @@ document.addEventListener('DOMContentLoaded', async function () {
             if (viewName === 'list-machines') updateInventory();
             if (viewName === 'cvi') updateCVIList();
 	    if (viewName === 'add-machine') {
-    		document.getElementById('quantite').dispatchEvent(new Event('input'));
-	    chargerMachinesDepuisGitHub()
-	    }
+    		document.getElementById('quantite').dispatchEvent(new Event('input'));}
+	    chargerMachinesDepuisGitHub();
+	
         }
 
         function addMachine(e) {
@@ -331,6 +336,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             
             const marque = document.getElementById('marque').value.trim();
             const model = document.getElementById('model').value.trim();
+	    const description = document.getElementById('description').value.trim();
             const quantite = parseInt(document.getElementById('quantite').value);
             const etatcvi = 'non';
             const dateFinCVI = null;
@@ -394,6 +400,7 @@ document.addEventListener('DOMContentLoaded', async function () {
                     model: model,
                     quantite,
 		    emplacement:emplacementGlobal,
+		    description:description,
 		    unites: Array.from({ length: quantite }, (_, i) => ({
     			numserie: document.getElementById(`numserie-${i}`).value.trim(),
 			position: document.getElementById(`position-${i}`).value.trim(),
@@ -475,12 +482,8 @@ document.addEventListener('DOMContentLoaded', async function () {
             					: null
     				});
 			}	
+		
 
-
-			const uniquePositions = [...new Set(newUnits
-    				.map(u => u.position?.trim())
-    				.filter(pos => pos))];
-			const emplacementGlobal = uniquePositions.join(' + ');
         		tr.innerHTML = `
             			<td>${machine.marque}</td>
             			<td>${machine.model}</td>
@@ -489,7 +492,6 @@ document.addEventListener('DOMContentLoaded', async function () {
 	       			<td>
     					<button class="btn btn-primary" onclick="showProductModal(${index})">Voir plus</button>
     					<button class="btn btn-secondary" onclick="toggleUnitDetails('units-${index}')">Unités</button>
-                			<button class="btn btn-info" onclick="showQRCodeModal(${index})">Voir QR Code</button>
             			</td>
         		`;
         		tbody.appendChild(tr);
@@ -538,10 +540,6 @@ document.addEventListener('DOMContentLoaded', async function () {
 		container.style.display = container.style.display === 'none' ? 'block' : 'none';
 	}
 
-	function showQRCodeModal(qrHtml) {
-    		document.getElementById('qrCodeModalBody').innerHTML = qrHtml;
-    		new bootstrap.Modal(document.getElementById('qrCodeModal')).show();
-	}
 
 	function generateUnitFields(machine, index) {
     		const unites = machine.unites || [];
@@ -602,11 +600,11 @@ document.addEventListener('DOMContentLoaded', async function () {
         		} else {
             			showAlert("Unité supprimée avec succès", "success");
         		}
-
+			envoyerVersGitHub(machines)
         		saveMachines();
         		updateInventory();
         		updateCVIList();
-        		showView('list-machines'); // Retour à la liste dans tous les cas
+        		showView('list-machines'); 
     		}
 	}
 	function deleteUnit(machineIndex, unitIndex) {
@@ -690,6 +688,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 				}
                			machines = importedData;
                 		saveMachines();
+				envoyerVersGitHub(machines)
                 		showAlert("Données importées avec succès", "success");
                 		updateInventory();
             		} else {
@@ -711,6 +710,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             			marque: machine.marque,
             			model: machine.model,
             			quantite: machine.quantite,
+				description: machine.description,
         		};
 
         		if (Array.isArray(machine.unites) && machine.unites.length > 0) {
@@ -772,6 +772,7 @@ document.addEventListener('DOMContentLoaded', async function () {
                     				model: row.model,
 
                    				quantite: 0,
+						description: row.description,
                 	    			unites: []
                 			};
            			}
@@ -902,49 +903,48 @@ document.addEventListener('DOMContentLoaded', async function () {
     		new bootstrap.Modal(document.getElementById('qrCodeModal')).show();
 	}
 
-	function showQRCodeModal(index) {
-
-    		const machine = machines[index];
-    		const qr = qrcode(0, 'L');
-    		qr.addData(`${machine.marque}|${machine.model}`);
-    		qr.make();
-
-    		document.getElementById('qrCodeModalBody').innerHTML = qr.createImgTag(6); 
 
 
-    		const qrModal = new bootstrap.Modal(document.getElementById('qrCodeModal'));
-    		qrModal.show();
-	}
 
+function updateCVIList() {
+    const tbody = document.getElementById('cvi-table-body');
+    tbody.innerHTML = '';
 
-	function updateCVIList() {
-   		const tbody = document.getElementById('cvi-table-body');
-		tbody.innerHTML = '';
+    let found = false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-		let found = false;
+    machines.forEach(machine => {
+        (machine.unites || []).forEach(unit => {
+            if (unit.etatcvi === 'oui' && unit.numserie) {
+                const tr = document.createElement('tr');
+                const dateCVI = unit.dateFinCVI ? new Date(unit.dateFinCVI) : null;
 
-   		machines.forEach(machine => {
-        		(machine.unites || []).forEach(unit => {
-            			if (unit.etatcvi === 'oui' && unit.numserie) {
-                			const tr = document.createElement('tr');
-                			tr.innerHTML = `
-                    				<td>${machine.marque}</td>
-                    				<td>${machine.model}</td>
-                    				<td>${unit.numserie}</td>
-                    				<td>${unit.position}</td>
-                    				<td>${unit.dateFinCVI}</td>
-                    				<td><button class="btn btn-sm btn-primary" onclick="showProductModal(${machines.indexOf(machine)})">Voir plus</button></td>
-                			`;
-                			tbody.appendChild(tr);
-                			found = true;
-            			}
-        		});
-    		});
+                const isExpired = dateCVI && dateCVI < today;
+                if (isExpired) {
+                    tr.classList.add('table-danger'); 
+                }
 
-    		if (!found) {
-        		tbody.innerHTML = '<tr><td colspan="6" class="text-center">Aucune machine avec CVI</td></tr>';
-    		}
-	}
+                tr.innerHTML = `
+                    <td>${machine.marque}</td>
+                    <td>${machine.model}</td>
+                    <td>${unit.numserie}</td>
+                    <td>${unit.position}</td>
+                    <td class="${isExpired ? 'text-danger fw-bold' : ''}">
+                        ${unit.dateFinCVI || ''}
+                        ${isExpired ? ' (Expiré)' : ''}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+                found = true;
+            }
+        });
+    });
+
+    if (!found) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center">Aucune machine avec CVI</td></tr>';
+    }
+}
 
           	
         function showProductModal(index) {
@@ -961,6 +961,8 @@ document.addEventListener('DOMContentLoaded', async function () {
 				<td>${unit.position||''}</td>
     				<td>${unit.etatcvi || 'non'}</td>
     				<td>${unit.dateFinCVI || ''}</td>
+
+
   			</tr>
 		`;
 
@@ -976,6 +978,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 						<th>Emplacement</th>
           					<th>CVI</th>
           					<th>Date fin CVI</th>
+
         				</tr>
       				</thead>
       				<tbody>
@@ -993,6 +996,15 @@ document.addEventListener('DOMContentLoaded', async function () {
             		<label class="form-label">Modèle</label>
             		<input type="text" class="form-control" id="modal-model" value="${machine.model}">
         	</div>
+		
+		<div>
+			
+			<div class="mb-3">
+    				<label class="form-label">Description</label>
+    				<textarea class="form-control" id="modal-description" rows="4">${machine.description || ''}</textarea>
+    				<div class="form-text mt-1">Aperçu : <span id="description-preview"></span></div>
+			</div>
+		</div>
         	${tableWrapper}
 
         	<div class="d-flex justify-content-between mt-3">
@@ -1000,7 +1012,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             		<button class="btn btn-danger" onclick="deleteMachine(${index})">Supprimer</button>
         	</div>
     	   `;
-
+           document.getElementById('description-preview').innerHTML = rendreCliquable(machine.description || "");
 
             new bootstrap.Modal(document.getElementById('productModal')).show();
         }
@@ -1009,6 +1021,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             const index = currentScanIndex;
 	    const newmodel = document.getElementById('modal-model').value;
 	    const newmarque = document.getElementById('modal-marque').value;
+	    const newdescription = document.getElementById('modal-description').value;
 
 
     	    if (!newmarque || !newmodel) {
@@ -1018,7 +1031,8 @@ document.addEventListener('DOMContentLoaded', async function () {
 
             machines[index].model = newmodel;
             machines[index].marque = newmarque;
-
+	    machines[index].description = newdescription;
+	    envoyerVersGitHub(machines)
             saveMachines();
             updateInventory();
             updateCVIList();
@@ -1029,6 +1043,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         function deleteMachine(index) {
             if (confirm('Êtes-vous sûr de vouloir supprimer cette machine ?')) {
                 machines.splice(index, 1);
+		envoyerVersGitHub(machines)
                 saveMachines();
                 updateInventory();
                 updateCVIList();
@@ -1112,38 +1127,43 @@ document.addEventListener('DOMContentLoaded', async function () {
       		}
     	}
 
-
-	function searchMachineByQR(data) {
-    		const cleanedData = data.trim().toLowerCase();
-    		if (cleanedData.includes('|')) {
-       			const [marque, model] = cleanedData.split('|').map(v => v.trim());
-        		const machine = machines.find(m =>
-           			m.marque.toLowerCase() === marque &&
-            			m.model.toLowerCase() === model
-
-        		);
-
-    		}
-    		for (let i = 0; i < machines.length; i++) {
-    			const machine = machines[i];
-    			for (let j = 0; j < (machine.unites || []).length; j++) {
-        			const unit = machine.unites[j];
-        			const scannedParts = cleanedData.split('|').map(p => p.trim().toLowerCase());
-
-        			if (
-            				machine.marque.toLowerCase() === scannedParts[0] &&
-            				machine.model.toLowerCase() === scannedParts[1] &&
-            				unit.numserie && unit.numserie.toLowerCase() === scannedParts[2]
-        			) {
-            				showUnitEditView(i, j);
-            				showAlert('Machine trouvée', 'success');
-            				return;
-        			}
-    			}
-		}
-
-    		showAlert('Aucune machine ou unité trouvée avec ce QR Code', 'danger');
+	function rendreCliquable(texte) {
+    		const urlRegex = /(https?:\/\/[^\s]+)/g;
+    		return texte.replace(urlRegex, function(url) {
+        		return `<a href="${url}" target="_blank">${url}</a>`;
+    		});
 	}
+
+
+function searchMachineByQR(data) {
+    const cleanedData = data.trim().toLowerCase();
+    if (cleanedData.includes('|')) {
+        const [marque, model, numserie] = cleanedData.split('|').map(v => v.trim()); // Modifier cette ligne
+        for (let i = 0; i < machines.length; i++) {
+            const machine = machines[i];
+            for (let j = 0; j < (machine.unites || []).length; j++) {
+                const unit = machine.unites[j];
+                if (machine.marque.toLowerCase() === marque &&
+                    machine.model.toLowerCase() === model &&
+                    unit.numserie && unit.numserie.toLowerCase() === numserie) {
+                    showUnitEditView(i, j);
+                    showAlert('Machine trouvée', 'success');
+                    return;
+                }
+            }
+        }
+	showView('add-machine');
+        document.getElementById('marque').value = marque;
+        document.getElementById('model').value = model;
+        document.getElementById('quantite').value = 1;
+        document.getElementById('quantite').dispatchEvent(new Event('input'));
+        
+        if (document.getElementById('numserie-0')) {
+            document.getElementById('numserie-0').value = numserie;
+        }
+    }
+    showAlert('Aucune machine ou unité trouvée avec ce QR Code', 'danger');
+}
 
 	function manualSearch() {
     		const query = document.getElementById('manual-search').value.trim().toLowerCase();
@@ -1180,6 +1200,29 @@ document.addEventListener('DOMContentLoaded', async function () {
    		html += `</div>`;
     		resultsContainer.innerHTML = html;
 	}
+
+	let currentSort={key:'',asc:true,th:null};
+	function sortMachinesby(key,thElement){
+		if (currentSort.key === key){
+			currentSort.asc=!currentSort.asc;
+		} else {
+			currentSort = {key,asc:true,th:thElement};
+		}
+		machines.sort((a,b)=> { 
+			let valA=a[key]; 
+			let valB=b[key];
+			if (typeof valA === 'string') valA=valA.toLowerCase();
+			if (typeof valB === 'string') valB=valB.toLowerCase();
+			if (valA < valB) return currentSort.asc ? -1 :1;
+			if (valA > valB) return currentSort.asc ? 1 :-1;
+			return 0;
+		});
+		document.querySelectorAll("th.chevron").forEach(span => span.textContent='');
+		const chevron = currentSort.asc ? ' ▲':' ▼';
+		thElement.querySelector(".chevron").textContent = chevron;
+		updateInventory();
+	}
+
 	async function printQRCode() {
     		const marque = document.getElementById('marque').value.trim();
     		const model = document.getElementById('model').value.trim();
@@ -1270,7 +1313,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     printWindow.document.close();
     setTimeout(() => {
         printWindow.print();
-    }, 0.1);
+    },100);
 }
 
         // Helpers
@@ -1297,19 +1340,26 @@ document.addEventListener('DOMContentLoaded', async function () {
                 alert.remove();
             }, 5000);
         }
-	async function chargerMachinesDepuisGitHub() {
-    try {
-        const res = await fetch("https://api.github.com/repos/Axitest94100/inventaire-machines/contents/data/machines.json");
-        const data = await res.json();
-        const json = atob(data.content); 
-        machines = JSON.parse(json);
-        localStorage.setItem('machines', JSON.stringify(machines));
-        console.log("Données chargées depuis GitHub");
-    } catch (e) {
-        showAlert("Erreur lors du chargement GitHub", "danger");
-        machines = JSON.parse(localStorage.getItem('machines')) || [];
-    }
-}
+		async function chargerMachinesDepuisGitHub() {
+    			try {
+        			const res = await fetch("https://api.github.com/repos/Axitest94100/inventaire-machines/contents/data/machines.json");
+        			const data = await res.json();
+        			const json = atob(data.content); 
+        			machines = JSON.parse(json);
+        			localStorage.setItem('machines', JSON.stringify(machines));
+        			console.log("Données chargées depuis GitHub");
+    			} catch (e) {
+        			showAlert("Erreur lors du chargement GitHub", "danger");
+        			machines = JSON.parse(localStorage.getItem('machines')) || [];
+    			}
+			machines.forEach(machine=>{
+				if (Array.isArray(machine.unites)){
+					const uniquepositions=[...new Set(machine.unites.map(u => u.position?.trim()).filter(Boolean))];
+					machine.emplacement = uniquepositions.join("+");
+			
+				}
+			});
+		}
     </script>
 <script>
 async function envoyerVersGitHub(machines) {
@@ -1328,6 +1378,7 @@ async function envoyerVersGitHub(machines) {
     showAlert("Erreur : " + result.message);
   }
 }
+
 
 </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
