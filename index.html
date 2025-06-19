@@ -411,9 +411,9 @@ document.addEventListener('DOMContentLoaded', async function () {
             }
 
             saveMachines();
-	    envoyerVersGitHub(machines); 
-            document.getElementById('add-machine-form').reset();
-	    setTimeout(() => {ChargerDepuisGitHub();},500);
+	    await envoyerVersGitHub(machines);
+            await chargerMachinesDepuisGitHub();
+	    setTimeout(() => {chargerMachinesDepuisGitHub();},500);
             showView('list-machines');
         }
 	
@@ -527,10 +527,11 @@ document.addEventListener('DOMContentLoaded', async function () {
     		machine.quantite = machine.unites.length;
 
     		saveMachines();
-		envoyerVersGitHub(machines); 
+	   	await envoyerVersGitHub(machines);
+            	await chargerMachinesDepuisGitHub();
     		updateInventory();
     		updateCVIList();
-		setTimeout(() => {ChargerDepuisGitHub();},500);
+
     		showAlert("Une unité a été ajoutée", "success");
     		document.getElementById(`units-${index}`).style.display = 'block';
 	}
@@ -601,10 +602,11 @@ document.addEventListener('DOMContentLoaded', async function () {
             			showAlert("Unité supprimée avec succès", "success");
         		}
         		saveMachines();
-			envoyerVersGitHub(machines);
+	    		await envoyerVersGitHub(machines);
+			await chargerMachinesDepuisGitHub();
         		updateInventory();
         		updateCVIList();
-			setTimeout(() => {ChargerDepuisGitHub();},500);
+
         		showView('list-machines'); 
     		}
 	}
@@ -624,10 +626,10 @@ document.addEventListener('DOMContentLoaded', async function () {
     		}
 
     		saveMachines();
-	    	envoyerVersGitHub(machines); 
+		await envoyerVersGitHub(machines);
+            	await chargerMachinesDepuisGitHub();
     		updateInventory();
     		updateCVIList();
-		setTimeout(() => {ChargerDepuisGitHub();},500);
     		showAlert("Unité supprimée avec succès", "success");
 	}
 
@@ -658,8 +660,8 @@ document.addEventListener('DOMContentLoaded', async function () {
 		machines[index].emplacement = uniquePositions.join(' + ');
 
     		saveMachines();
-		envoyerVersGitHub(machines);
-		setTimeout(() => {ChargerDepuisGitHub();},500);
+	    	await envoyerVersGitHub(machines);
+            	await chargerMachinesDepuisGitHub();
 		updateInventory();
     		updateCVIList();
     		showAlert('Unités mises à jour avec succès', 'success');
@@ -691,8 +693,8 @@ document.addEventListener('DOMContentLoaded', async function () {
 				}
                			machines = importedData;
                 		saveMachines();
-				envoyerVersGitHub(machines)
-				setTimeout(() => {ChargerDepuisGitHub();},500);
+		    		await envoyerVersGitHub(machines);
+            			await chargerMachinesDepuisGitHub();
                 		showAlert("Données importées avec succès", "success");
                 		updateInventory();
             		} else {
@@ -799,8 +801,8 @@ document.addEventListener('DOMContentLoaded', async function () {
         		}));
 
         		saveMachines();
-			envoyerVersGitHub(machines);
-			setTimeout(() => {ChargerDepuisGitHub();},500);
+	    		await envoyerVersGitHub(machines);
+            		await chargerMachinesDepuisGitHub();
         		showAlert("Importation Excel réussie", "success");
         		updateInventory();
     		};
@@ -842,8 +844,8 @@ document.addEventListener('DOMContentLoaded', async function () {
     		unit.dateFinCVI = (unit.etatcvi === 'oui') ? document.getElementById('edit-unit-date-cvi').value : null;
 
     		saveMachines();
-		envoyerVersGitHub(machines); 
-		setTimeout(() => {ChargerDepuisGitHub();},500);
+		await envoyerVersGitHub(machines);
+            	await chargerMachinesDepuisGitHub();
     		showAlert('Unité mise à jour', 'success');
     		showView('list-machines');
 	});
@@ -894,21 +896,6 @@ document.addEventListener('DOMContentLoaded', async function () {
         		link.click();
     		};
 	}
-	function showQRCodeModalFromSerial(serial) {
-    		if (!serial || serial.trim() === '') {
-        		alert("Numéro de série vide !");
-        		return;
-    		}
-
-    		const qr = qrcode(0, 'L');
-    		qr.addData(serial.trim());
-    		qr.make();
-
-    		document.getElementById('qrCodeModalBody').innerHTML = qr.createImgTag(6);
-
-    		new bootstrap.Modal(document.getElementById('qrCodeModal')).show();
-	}
-
 
 
 
@@ -1039,10 +1026,10 @@ function updateCVIList() {
             machines[index].marque = newmarque;
 	    machines[index].description = newdescription;
             saveMachines();
-	    envoyerVersGitHub(machines);
+	    await envoyerVersGitHub(machines);
+            await chargerMachinesDepuisGitHub();
             updateInventory();
             updateCVIList();
-	    setTimeout(() => {ChargerDepuisGitHub();},500);
             showAlert('Produit mis à jour', 'success');
             bootstrap.Modal.getInstance(document.getElementById('productModal')).hide();
         }
@@ -1051,10 +1038,10 @@ function updateCVIList() {
             if (confirm('Êtes-vous sûr de vouloir supprimer cette machine ?')) {
                 machines.splice(index, 1);
                 saveMachines();
-		envoyerVersGitHub(machines);
+	    	await envoyerVersGitHub(machines);
+           	await chargerMachinesDepuisGitHub();
                 updateInventory();
                 updateCVIList();
-		setTimeout(() => {ChargerDepuisGitHub();},500);
                 showAlert('Machine supprimée', 'success');
                 bootstrap.Modal.getInstance(document.getElementById('productModal')).hide();
             }
