@@ -41,6 +41,16 @@
     		font-weight: bold;
     		color: #dc3545 !important; /* Rouge Bootstrap */
 	}
+	#unit-edit-view {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1060;
+  background-color: white;
+  width: 100vw;
+  height: 100vh;
+  overflow: auto;
+}
 
     </style>
 </head>
@@ -68,6 +78,10 @@
                     <li class="nav-item">
                         <a class="nav-link" href="#" onclick="showView('export')">Sauvegarde</a>
 		    </li>
+		   <li class="nav-item">
+    			<a class="nav-link" href="#" onclick="showView('logs')">Logs</a>
+		   </li>
+
                 </ul>
             </div>
 
@@ -236,10 +250,27 @@
 		  </div>
 	</div>		
 
+	<div id="logs-view" class="view hidden">
+    		<h2>Journal des actions</h2>
+    		<div class="table-responsive">
+        		<table class="table table-bordered">
+            			<thead>
+                			<tr>
+                    				<th>Date</th>
+                    				<th>Type</th>
+                    				<th>Message</th>	
+					</tr>
+            			</thead>
+            			<tbody id="logs-table-body"></tbody>
+        		</table>
+    		</div>
+    		<button class="btn btn-secondary" onclick="clearLogs()">Vider les logs</button>
+    		<button class="btn btn-secondary" onclick="showView('home')">Retour</button>
+	</div>
 
 
     <div class="modal fade" id="productModal" tabindex="-1" style="display: none;" aria-hidden="true">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Fiche Produit</h5>
@@ -304,10 +335,13 @@
             			<label class="form-label">Date fin CVI</label>
             			<input type="date" class="form-control" id="edit-unit-date-cvi">
         		</div>
-        		<button type="submit" class="btn btn-primary">Enregistrer</button>
-			<button class="btn btn-sm btn-danger" onclick="deleteCurrentUnit()">Supprimer</button>
-        		
-    		</form>
+       			<button type="submit" class="btn btn-primary">Enregistrer</button>
+			<button type="button" class="btn btn-danger" id="delete-unit-button">Supprimer</button>
+			<button type="button" class="btn btn-success" onclick="imprimerQRCodeUnite()">Imprimer le QR</button>
+       			<button type="button" class="btn btn-secondary" onclick="showView('scan')">Annuler</button>
+
+
+		</form>
 	     </div>
 	  </div>
 	</div>
@@ -318,12 +352,12 @@
         let html5QrcodeScanner = null;
         let currentScanIndex = null;
 
-document.addEventListener('DOMContentLoaded', async function () {
-    await chargerMachinesDepuisGitHub();
-    showView('home');
-    document.getElementById('add-machine-form').addEventListener('submit', addMachine);
-    document.getElementById('etatcvi')?.addEventListener('change', toggleCVIDate);
-});
+	document.addEventListener('DOMContentLoaded', async function () {
+    		await chargerMachinesDepuisGitHub();
+    		showView('home');
+    		document.getElementById('add-machine-form').addEventListener('submit', addMachine);
+    		document.getElementById('etatcvi')?.addEventListener('change', toggleCVIDate);
+	});
 
 
         function showView(viewName) {
@@ -334,8 +368,8 @@ document.addEventListener('DOMContentLoaded', async function () {
             
             if (viewName === 'list-machines') updateInventory();
             if (viewName === 'cvi') updateCVIList();
-	    if (viewName === 'add-machine') {document.getElementById('quantite').dispatchEvent(new Event('input')); 
-					    chargerMachinesDepuisGitHub();};
+	    if (viewName === 'add-machine') {document.getElementById('quantite').dispatchEvent(new Event('input'));};
+	    if (viewName === 'logs') updateLogsView();
 	}
 
         function addMachine(e) {
@@ -416,9 +450,13 @@ document.addEventListener('DOMContentLoaded', async function () {
 			})),
                     createdAt: new Date().toISOString()
                 });
+		logAction("ajout", `${machine.marque} ${machine.model} ajouté au stock`, {
+    			marque: machine.marque,
+    			model: machine.model,
+		});
                 showAlert('Nouveau modèle ajouté', 'success');
             }
-
+		
             saveMachines();
             showView('list-machines');
         }
@@ -533,9 +571,13 @@ document.addEventListener('DOMContentLoaded', async function () {
     		machine.quantite = machine.unites.length;
 
     		saveMachines();
+		
     		updateInventory();
     		updateCVIList();
-
+		logAction("ajout", `Nouvelle unité ajoutée à ${machine.marque} ${machine.model} ${unit.numserie}`, {
+    			index,
+    			nouvelleUnite: machine.unites[machine.unites.length - 1]
+		});
     		showAlert("Une unité a été ajoutée", "success");
     		document.getElementById(`units-${index}`).style.display = 'block';
 	}
@@ -589,44 +631,28 @@ document.addEventListener('DOMContentLoaded', async function () {
     		return html;
 	}
 
-	function deleteCurrentUnit() {
-    		if (currentMachineIndex === null || currentUnitIndex === null) return;
-    
-    		if (confirm("Êtes-vous sûr de vouloir supprimer cette unité ?")) {
-        		const machine = machines[currentMachineIndex];
-        
 
-        		machine.unites.splice(currentUnitIndex, 1);
-        		machine.quantite = machine.unites.length;
-
-        		if (machine.quantite === 0) {
-            			machines.splice(currentMachineIndex, 1);
-            			showAlert("Machine supprimée car elle n'a plus d'unités", "warning");
-        		} else {
-            			showAlert("Unité supprimée avec succès", "success");
-        		}
-        		saveMachines();
-        		updateInventory();
-        		updateCVIList();
-
-        		showView('list-machines'); 
-    		}
-	}
 	function deleteUnit(machineIndex, unitIndex) {
     		const machine = machines[machineIndex];
     		if (!machine.unites || !machine.unites[unitIndex]) return;
-
+		const unit = machine.unites[unitIndex];
     		if (!confirm(`Supprimer l’unité n°${unitIndex + 1} (n° série: ${machine.unites[unitIndex].numserie}) ?`)) return;
-
+		logAction("suppression", `Suppression d’une unité de ${machine.marque} ${machine.model} ${unit.numserie}`, {
+    			numserie: unit.numserie
+		});
     		machine.unites.splice(unitIndex, 1);
     		machine.quantite = machine.unites.length;
 
 		if (machine.quantite === 0) {
         		machines.splice(machineIndex, 1);
         		showAlert("Machine supprimée car elle n'a plus d'unités", "warning");
-        		showView('list-machines');
+			showView('list-machines');
     		}
-
+		logAction("suppression", `Suppression d'une unité de ${machine.marque} ${machine.model}, s/n : ${unit.numserie}`, {
+        		numserie: unit.numserie
+    		});
+		const uniquePositions = [...new Set(machine.unites.map(u => u.position?.trim()).filter(pos => pos))];
+    		machine.emplacement = uniquePositions.join(' + ');
     		saveMachines();
     		updateInventory();
     		updateCVIList();
@@ -658,10 +684,15 @@ document.addEventListener('DOMContentLoaded', async function () {
     			.map(u => u.position?.trim())
     			.filter(pos => pos))];
 		machines[index].emplacement = uniquePositions.join(' + ');
+		const numseries = importedData.flatMap(m => m.unites?.map(u => u.numserie)).filter(Boolean);
+		logAction("import", "Importation JSON", { count: importedData.length, numseries });
 
     		saveMachines();
 		updateInventory();
     		updateCVIList();
+		logAction("modification", `Unités n°${unit.numserie} modifiées de ${machine.marque} ${machine.model}`, {
+    			numseries
+		});
     		showAlert('Unités mises à jour avec succès', 'success');
 	}
 
@@ -690,6 +721,8 @@ document.addEventListener('DOMContentLoaded', async function () {
     					return;
 				}
                			machines = importedData;
+				logAction("importation", `Importation d'un fichier JSON`, {
+				});
                 		saveMachines();
                 		showAlert("Données importées avec succès", "success");
                 		updateInventory();
@@ -795,6 +828,8 @@ document.addEventListener('DOMContentLoaded', async function () {
             			dateFinCVI: null,
             			createdAt: new Date().toISOString()
         		}));
+			const numseries = importedRows.map(r => r.numserie).filter(Boolean);
+			logAction("import", "Importation Excel", { lignes: importedRows.length, numseries });
 
         		saveMachines();
         		showAlert("Importation Excel réussie", "success");
@@ -810,6 +845,8 @@ document.addEventListener('DOMContentLoaded', async function () {
 	function showUnitEditView(machineIndex, unitIndex) {
     		currentMachineIndex = machineIndex;
     		currentUnitIndex = unitIndex;
+		document.getElementById('unit-edit-view').classList.remove('hidden');
+		bootstrap.Modal.getInstance(document.getElementById('productModal'))?.hide();
 
     		const machine = machines[machineIndex];
     		const unit = machine.unites[unitIndex];
@@ -820,10 +857,12 @@ document.addEventListener('DOMContentLoaded', async function () {
     		document.getElementById('edit-unit-position').value = unit.position;
     		document.getElementById('edit-unit-cvi').value = unit.etatcvi;
     		document.getElementById('edit-unit-date-cvi').value = unit.dateFinCVI || '';
+    		document.getElementById('delete-unit-button').onclick = function() {
+        		deleteUnit(currentMachineIndex, currentUnitIndex);
+    		};
 
-    		showView('unit-edit');
+		showView('unit-edit');
 	}
-
 	document.getElementById('unit-edit-form').addEventListener('submit', function(e) {
     		e.preventDefault();
 
@@ -836,8 +875,14 @@ document.addEventListener('DOMContentLoaded', async function () {
     		unit.position = document.getElementById('edit-unit-position').value;
     		unit.etatcvi = document.getElementById('edit-unit-cvi').value;
     		unit.dateFinCVI = (unit.etatcvi === 'oui') ? document.getElementById('edit-unit-date-cvi').value : null;
-
+        	const uniquePositions = [...new Set(machine.unites.map(u => u.position?.trim()).filter(pos => pos))];
+	        machine.emplacement = uniquePositions.join(' + ');
     		saveMachines();
+		logAction("modification", `Modification de l’unité ${machine.marque} ${machine.model}${unit.numserie}`, {
+    			marque: machine.marque,
+    			model: machine.model,
+    			numserie: unit.numserie
+		});
     		showAlert('Unité mise à jour', 'success');
     		showView('scan');
 	});
@@ -891,45 +936,45 @@ document.addEventListener('DOMContentLoaded', async function () {
 
 
 
-function updateCVIList() {
-    const tbody = document.getElementById('cvi-table-body');
-    tbody.innerHTML = '';
+	function updateCVIList() {
+    		const tbody = document.getElementById('cvi-table-body');
+    		tbody.innerHTML = '';
 
-    let found = false;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    		let found = false;
+    		const today = new Date();
+    		today.setHours(0, 0, 0, 0);
 
-    machines.forEach(machine => {
-        (machine.unites || []).forEach(unit => {
-            if (unit.etatcvi === 'oui' && unit.numserie) {
-                const tr = document.createElement('tr');
-                const dateCVI = unit.dateFinCVI ? new Date(unit.dateFinCVI) : null;
+    		machines.forEach(machine => {
+        		(machine.unites || []).forEach(unit => {
+            			if (unit.etatcvi === 'oui' && unit.numserie) {
+                			const tr = document.createElement('tr');
+                			const dateCVI = unit.dateFinCVI ? new Date(unit.dateFinCVI) : null;
 
-                const isExpired = dateCVI && dateCVI < today;
-                if (isExpired) {
-                    tr.classList.add('table-danger'); 
-                }
+                			const isExpired = dateCVI && dateCVI < today;
+                			if (isExpired) {
+                    				tr.classList.add('table-danger'); 
+                			}
 
-                tr.innerHTML = `
-                    <td>${machine.marque}</td>
-                    <td>${machine.model}</td>
-                    <td>${unit.numserie}</td>
-                    <td>${unit.position}</td>
-                    <td class="${isExpired ? 'text-danger fw-bold' : ''}">
-                        ${unit.dateFinCVI || ''}
-                        ${isExpired ? ' (Expiré)' : ''}
-                    </td>
-                `;
-                tbody.appendChild(tr);
-                found = true;
-            }
-        });
-    });
+                			tr.innerHTML = `
+                    				<td>${machine.marque}</td>
+                    				<td>${machine.model}</td>
+                    				<td>${unit.numserie}</td>
+                    				<td>${unit.position}</td>
+                   				<td class="${isExpired ? 'text-danger fw-bold' : ''}">
+                        				${unit.dateFinCVI || ''}
+                        				${isExpired ? ' (Expiré)' : ''}
+                    				</td>
+                			`;
+                			tbody.appendChild(tr);
+                			found = true;
+            			}
+        		});
+    		});
 
-    if (!found) {
-        tbody.innerHTML = '<tr><td colspan="6" class="text-center">Aucune machine avec CVI</td></tr>';
-    }
-}
+    		if (!found) {
+       		 	tbody.innerHTML = '<tr><td colspan="6" class="text-center">Aucune machine avec CVI</td></tr>';
+    		}
+	}
 
           	
         function showProductModal(index) {
@@ -946,6 +991,7 @@ function updateCVIList() {
 				<td>${unit.position||''}</td>
     				<td>${unit.etatcvi || 'non'}</td>
     				<td>${unit.dateFinCVI || ''}</td>
+				<td><button class="btn btn-primary" onclick="showUnitEditView(${index}, ${i})">Modifier</button></td>
 
 
   			</tr>
@@ -963,6 +1009,7 @@ function updateCVIList() {
 						<th>Emplacement</th>
           					<th>CVI</th>
           					<th>Date fin CVI</th>
+						<th>Action</th>
 
         				</tr>
       				</thead>
@@ -1017,6 +1064,10 @@ function updateCVIList() {
             machines[index].model = newmodel;
             machines[index].marque = newmarque;
 	    machines[index].description = newdescription;
+	    const numseries = machines[index].unites?.map(u => u.numserie).filter(Boolean);
+	    logAction("modification", `Mise à jour de ${machines[index].marque} ${machines[index].model}`, {
+    		numseries
+	    });
             saveMachines();
             updateInventory();
             updateCVIList();
@@ -1030,6 +1081,7 @@ function updateCVIList() {
                 saveMachines();
                 updateInventory();
                 updateCVIList();
+		logAction("suppression", `Machine supprimée : ${machines[index].marque} ${machines[index].model}`);
                 showAlert('Machine supprimée', 'success');
                 bootstrap.Modal.getInstance(document.getElementById('productModal')).hide();
             }
@@ -1118,36 +1170,70 @@ function updateCVIList() {
 	}
 
 
-function searchMachineByQR(data) {
-    const cleanedData = data.trim().toLowerCase();
-    if (cleanedData.includes('|')) {
-        const [marque, model, numserie] = cleanedData.split('|').map(v => v.trim()); // Modifier cette ligne
-        for (let i = 0; i < machines.length; i++) {
-            const machine = machines[i];
-            for (let j = 0; j < (machine.unites || []).length; j++) {
-                const unit = machine.unites[j];
-                if (machine.marque.toLowerCase() === marque &&
-                    machine.model.toLowerCase() === model &&
-                    unit.numserie && unit.numserie.toLowerCase() === numserie) {
-                    showUnitEditView(i, j);
-                    showAlert('Machine trouvée', 'success');
-                    return;
-                }
-            }
-        }
-	showView('add-machine');
-        document.getElementById('marque').value = marque;
-        document.getElementById('model').value = model;
-        document.getElementById('quantite').value = 1;
-        document.getElementById('quantite').dispatchEvent(new Event('input'));
+	function searchMachineByQR(data) {
+    		const cleanedData = data.trim().toLowerCase();
+    		if (cleanedData.includes('|')) {
+        		const [marque, model, numserie] = cleanedData.split('|').map(v => v.trim());
+        		for (let i = 0; i < machines.length; i++) {
+            			const machine = machines[i];
+            			for (let j = 0; j < (machine.unites || []).length; j++) {
+                			const unit = machine.unites[j];
+                			if (machine.marque.toLowerCase() === marque &&
+                    				machine.model.toLowerCase() === model &&
+                    				unit.numserie && unit.numserie.toLowerCase() === numserie) {
+                    				window.currentMachineIndex = i;
+                    				window.currentUnitIndex = j;
+		    				showUnitEditView(i, j);
+                    				showAlert('Machine trouvée', 'success');
+                    				return;
+                			}
+            			}
+        		}
+			showView('add-machine');
+        		document.getElementById('marque').value = marque;
+        		document.getElementById('model').value = model;
+        		document.getElementById('quantite').value = 1;
+        		document.getElementById('quantite').dispatchEvent(new Event('input'));
         
-        if (document.getElementById('numserie-0')) {
-            document.getElementById('numserie-0').value = numserie;
-        }
-    }
-    showAlert('Aucune machine ou unité trouvée avec ce QR Code', 'danger');
-}
+        		if (document.getElementById('numserie-0')) {
+            			document.getElementById('numserie-0').value = numserie;
+        		}
+    		}
+    		showAlert('Aucune machine ou unité trouvée avec ce QR Code', 'danger');
+	}
 
+	function logAction(type, message, data = null) {
+    		const logs = JSON.parse(localStorage.getItem('logs')) || [];
+    		logs.push({
+        		timestamp: new Date().toISOString(),
+        		type,
+        		message,
+        		data
+    		});
+    		localStorage.setItem('logs', JSON.stringify(logs));
+	}
+	function updateLogsView() {
+    		const logs = JSON.parse(localStorage.getItem('logs')) || [];
+    		const tbody = document.getElementById('logs-table-body');
+    		tbody.innerHTML = '';
+
+    		logs.reverse().forEach(log => {
+        		const tr = document.createElement('tr');
+        		tr.innerHTML = `
+            			<td>${new Date(log.timestamp).toLocaleString()}</td>
+           			<td><span class="badge bg-${log.type === 'erreur' ? 'danger' : 'info'}">${log.type}</span></td>
+            			<td>${log.message}</td>
+        		`;
+        		tbody.appendChild(tr);
+    		});
+	}
+	function clearLogs() {
+    		if (confirm("Effacer tous les logs ?")) {
+        		localStorage.removeItem('logs');
+        		updateLogsView();
+        		showAlert("Logs supprimés", "warning");
+    		}
+	}
         function manualSearch() {
             const query = document.getElementById('manual-search').value.trim().toLowerCase();
 	    const searchType =document.getElementById('search-type').value;
@@ -1190,6 +1276,7 @@ function searchMachineByQR(data) {
         }
 
 	let currentSort={key:'',asc:true,th:null};
+
 	function sortMachinesby(key,thElement){
 		if (currentSort.key === key){
 			currentSort.asc=!currentSort.asc;
@@ -1209,6 +1296,54 @@ function searchMachineByQR(data) {
 		const chevron = currentSort.asc ? ' ▲':' ▼';
 		thElement.querySelector(".chevron").textContent = chevron;
 		updateInventory();
+	}
+	function imprimerQRCodeUnite() {
+    		const machine = machines[currentMachineIndex];
+    		const unit = machine.unites[currentUnitIndex];
+    
+    		const marque = machine.marque || '';
+    		const model = machine.model || '';
+    		const numserie = unit.numserie || '';
+
+    		const qrData = `${marque}|${model}|${numserie}`;
+    		const qr = qrcode(0, 'H');
+    		qr.addData(qrData);
+    		qr.make();
+
+    		const qrImg = qr.createImgTag(5);
+
+    		const printWindow = window.open('', '_blank');
+    		printWindow.document.write(`
+        		<html>
+        			<head>
+            				<title>QR Code</title>
+            					<style>
+                					body {
+                    						display: flex;
+                    						flex-direction: column;
+                    						align-items: center;
+                    						justify-content: center;
+                    						font-family: Arial, sans-serif;
+                					}
+                					.infos {
+                    						margin-top: 10px;
+                    						text-align: center;
+                    						font-weight: bold;
+                					}
+            					</style>
+        			</head>
+        			<body>
+            				${qrImg}
+            				<div class="infos">
+                				<div>${marque}</div>
+                				<div>${model}</div>
+                				<div>${numserie}</div>
+            				</div>
+        			</body>
+        		</html>
+    		`);
+    		printWindow.document.close();
+    		setTimeout(() => printWindow.print(), 200);
 	}
 
 	async function printQRCode() {
@@ -1348,27 +1483,26 @@ function searchMachineByQR(data) {
 				}
 			});
 		}
-    </script>
-<script>
-async function envoyerVersGitHub(machines) {
-  const response = await fetch("https://machine-api-vercel-six.vercel.app/api/update", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ contentJSON: machines })
-  });
+
+		async function envoyerVersGitHub(machines) {
+  			const response = await fetch("https://machine-api-vercel-six.vercel.app/api/update", {
+    			method: "POST",
+    			headers: {
+      				"Content-Type": "application/json"
+    			},
+    			body: JSON.stringify({ contentJSON: machines })
+  			});
  
-  const result = await response.json();
-  if (response.ok) {
-    console.log("mise à jour réussi sur github");
-  } else {
-    showAlert("Erreur : " + result.message);
-  }
-}
+  			const result = await response.json();
+  			if (response.ok) {
+    				console.log("mise à jour réussi sur github");
+  			} else {
+    				showAlert("Erreur : " + result.message);
+  			}
+		}
 
 
-</script>
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 </body></html>
