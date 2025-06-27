@@ -42,15 +42,27 @@
     		color: #dc3545 !important; /* Rouge Bootstrap */
 	}
 	#unit-edit-view {
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 1060;
-  background-color: white;
-  width: 100vw;
-  height: 100vh;
-  overflow: auto;
-}
+  		position: fixed;
+  		top: 0;
+  		left: 0;
+  		z-index: 1060;
+  		background-color: white;
+  		width: 100vw;
+  		height: 100vh;
+  		overflow: auto;
+	}
+	html, body {
+    		height: 100%;
+	}
+
+	body {
+    		display: flex;
+    		flex-direction: column;
+	}
+
+	.container {
+    		flex: 1;
+	}
 
     </style>
 </head>
@@ -87,6 +99,8 @@
 
         </div>
     </nav>
+
+
 
     <div class="container mt-4">
         <div id="alert-placeholder"></div>
@@ -192,6 +206,7 @@
   			</div>
 		</div>
             <button class="btn btn-secondary mt-3" onclick="showView('home')">Retour</button>
+
         </div>
 	<div id="unit-detail-view" class="view hidden">
     		<h2>Détail de l’unité</h2>
@@ -218,7 +233,9 @@
             <button class="btn btn-secondary" onclick="showView('home')">Retour</button>
         </div>
     </div>
-
+	<footer class="text-center mt-5 py-3 bg-light text-muted" style="font-size: 0.9rem;">
+    		Conçu par Valentin Roy-Mamer avec l'aide de Ryan ALONZO ©2025
+	</footer>
     <div id="export-view" class="view hidden">
 		  <div class="card shadow mx-auto mt-4" style="max-width: 600px;">
 	            <div class="card-body">
